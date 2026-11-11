@@ -58,6 +58,12 @@ class Settings:
     evening_alert_end: time = _parse_clock_setting("EVENING_ALERT_END", "18:00")
     timezone: timezone = timezone(timedelta(hours=5, minutes=30), "IST")
 
+    def __post_init__(self) -> None:
+        # Render's private hostport references are formatted as "host:port".
+        # Accept those directly while keeping local and public URLs unchanged.
+        if not self.alerts_api_url.startswith(("http://", "https://")):
+            self.alerts_api_url = f"http://{self.alerts_api_url}"
+
     def token_for(self, profile: str) -> str:
         return self.telegram_evening_bot_token if profile == "evening" else self.telegram_bot_token
 
