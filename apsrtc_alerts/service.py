@@ -8,6 +8,10 @@ import os
 import signal
 import sys
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 logging.basicConfig(
     level=os.getenv("LOG_LEVEL", "INFO").upper(),
     format="%(asctime)s %(levelname)s %(name)s %(message)s",
@@ -34,7 +38,10 @@ async def _stop_processes(processes: list[asyncio.subprocess.Process]) -> None:
 async def main() -> int:
     port = os.getenv("PORT", "8000")
     base_env = os.environ.copy()
-    api_url = f"http://127.0.0.1:{port}"
+    api_url = (
+        os.getenv("ALERTS_API_URL", "").strip()
+        or f"http://127.0.0.1:{port}"
+    ).rstrip("/")
 
     for token_name in ("TELEGRAM_BOT_TOKEN", "TELEGRAM_EVENING_BOT_TOKEN"):
         if not base_env.get(token_name, "").strip():
