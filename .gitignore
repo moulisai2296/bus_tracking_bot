@@ -1,0 +1,33 @@
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Python virtual environments, bytecode, and caches
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.pytest-tmp/
+.uv-cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local runtime data
+*.sqlite3
+*.db
+*.log
+logs/*
+!logs/.gitkeep
+
+# Build output
+build/
+dist/
+*.egg-info/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

@@ -1,0 +1,183 @@
+{
+  "info": {
+    "_postman_id": "c2a8c2fe-d037-48d4-96d8-a3c75baf8082",
+    "name": "APSRTC Bus Alerts (Local)",
+    "description": "Use with the local FastAPI service at http://127.0.0.1:8000. In Bus lookup, History API calls APSRTC history while Today API calls the current live snapshot; they are separate sources. serviceId defaults to 11112026_OT14_2_SATYAVEEDU; todayServiceId defaults to 10112026_EM23_4_TIRUMALA, the service from the supplied live-data URL. Search station IDs first, then search buses or manage separate morning/evening watches. Set chatId to the value returned by /chatid in the matching Telegram bot before creating a Telegram watch.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://127.0.0.1:8000" },
+    { "key": "chatId", "value": "" },
+    { "key": "morningFromName", "value": "Puttur" },
+    { "key": "morningToName", "value": "Pichator" },
+    { "key": "eveningFromName", "value": "Pichator" },
+    { "key": "eveningToName", "value": "Puttur" },
+    { "key": "morningFromId", "value": "12321" },
+    { "key": "morningToId", "value": "11791" },
+    { "key": "eveningFromId", "value": "11791" },
+    { "key": "eveningToId", "value": "12321" },
+    { "key": "serviceId", "value": "11112026_OT14_2_SATYAVEEDU" },
+    { "key": "todayServiceId", "value": "10112026_EM23_4_TIRUMALA" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/health"
+      }
+    },
+    {
+      "name": "Stations",
+      "item": [
+        {
+          "name": "Find morning start station (Puttur)",
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('Station search succeeds', function () { pm.response.to.have.status(200); });",
+              "const wanted = (pm.collectionVariables.get('morningFromName') || '').trim().toLowerCase();",
+              "const rows = pm.response.json();",
+              "const found = rows.find(x => String(x.placeName || '').trim().toLowerCase() === wanted) || rows[0];",
+              "if (found) pm.collectionVariables.set('morningFromId', String(found.placeId));"
+            ] }
+          }],
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/stations?q={{morningFromName}}&limit=100" }
+        },
+        {
+          "name": "Find morning destination (Pichator)",
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('Station search succeeds', function () { pm.response.to.have.status(200); });",
+              "const wanted = (pm.collectionVariables.get('morningToName') || '').trim().toLowerCase();",
+              "const rows = pm.response.json();",
+              "const found = rows.find(x => String(x.placeName || '').trim().toLowerCase() === wanted) || rows[0];",
+              "if (found) pm.collectionVariables.set('morningToId', String(found.placeId));"
+            ] }
+          }],
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/stations?q={{morningToName}}&limit=100" }
+        },
+        {
+          "name": "Find evening start station (Pichator)",
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('Station search succeeds', function () { pm.response.to.have.status(200); });",
+              "const wanted = (pm.collectionVariables.get('eveningFromName') || '').trim().toLowerCase();",
+              "const rows = pm.response.json();",
+              "const found = rows.find(x => String(x.placeName || '').trim().toLowerCase() === wanted) || rows[0];",
+              "if (found) pm.collectionVariables.set('eveningFromId', String(found.placeId));"
+            ] }
+          }],
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/stations?q={{eveningFromName}}&limit=100" }
+        },
+        {
+          "name": "Find evening destination (Puttur)",
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('Station search succeeds', function () { pm.response.to.have.status(200); });",
+              "const wanted = (pm.collectionVariables.get('eveningToName') || '').trim().toLowerCase();",
+              "const rows = pm.response.json();",
+              "const found = rows.find(x => String(x.placeName || '').trim().toLowerCase() === wanted) || rows[0];",
+              "if (found) pm.collectionVariables.set('eveningToId', String(found.placeId));"
+            ] }
+          }],
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/stations?q={{eveningToName}}&limit=100" }
+        }
+      ]
+    },
+    {
+      "name": "Bus lookup",
+      "item": [
+        {
+          "name": "Morning buses (Puttur → Pichator)",
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('Bus lookup returns 200', function () { pm.response.to.have.status(200); });",
+              "const buses = pm.response.json().buses || [];",
+              "if (buses.length && buses[0].serviceDocId) pm.collectionVariables.set('serviceId', String(buses[0].serviceDocId));"
+            ] }
+          }],
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/buses?from_station_id={{morningFromId}}&to_station_id={{morningToId}}" }
+        },
+        {
+          "name": "Evening buses (Pichator → Puttur)",
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('Bus lookup returns 200', function () { pm.response.to.have.status(200); });",
+              "const buses = pm.response.json().buses || [];",
+              "if (buses.length && buses[0].serviceDocId) pm.collectionVariables.set('serviceId', String(buses[0].serviceDocId));"
+            ] }
+          }],
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/buses?from_station_id={{eveningFromId}}&to_station_id={{eveningToId}}" }
+        },
+        {
+          "name": "History API: service stops and ETAs",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/buses/{{serviceId}}/stops" }
+        },
+        {
+          "name": "Today API: live stops only (todayServiceId)",
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('Today stops request returns 200', function () { pm.response.to.have.status(200); });",
+              "const data = pm.response.json();",
+              "pm.test('Today API identifies its data source', function () { pm.expect(data).to.have.property('data_source'); });",
+              "pm.test('Today API returns a stop list', function () { pm.expect(data.stops).to.be.an('array'); });"
+            ] }
+          }],
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/buses/{{todayServiceId}}/today-stops" }
+        }
+      ]
+    },
+    {
+      "name": "Morning watch",
+      "item": [
+        {
+          "name": "Create or replace morning watch",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"bot_profile\": \"morning\",\n  \"chat_id\": \"{{chatId}}\",\n  \"from_station_id\": \"{{morningFromId}}\",\n  \"to_station_id\": \"{{morningToId}}\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{baseUrl}}/watches"
+          }
+        },
+        {
+          "name": "Get morning watch",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/watches/{{chatId}}?bot_profile=morning" }
+        },
+        {
+          "name": "Stop morning watch",
+          "request": { "method": "DELETE", "header": [], "url": "{{baseUrl}}/watches/{{chatId}}?bot_profile=morning" }
+        }
+      ]
+    },
+    {
+      "name": "Evening watch",
+      "item": [
+        {
+          "name": "Create or replace evening watch",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"bot_profile\": \"evening\",\n  \"chat_id\": \"{{chatId}}\",\n  \"from_station_id\": \"{{eveningFromId}}\",\n  \"to_station_id\": \"{{eveningToId}}\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{baseUrl}}/watches"
+          }
+        },
+        {
+          "name": "Get evening watch",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/watches/{{chatId}}?bot_profile=evening" }
+        },
+        {
+          "name": "Stop evening watch",
+          "request": { "method": "DELETE", "header": [], "url": "{{baseUrl}}/watches/{{chatId}}?bot_profile=evening" }
+        }
+      ]
+    }
+  ]
+}
