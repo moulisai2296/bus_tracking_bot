@@ -1,0 +1,6 @@
+[build]
+builder = "RAILPACK"
+
+[deploy]
+startCommand = "uv run python -m apsrtc_alerts.service"
+healthcheckPath = "/health"
