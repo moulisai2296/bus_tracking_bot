@@ -5,7 +5,7 @@ services:
     plan: 0.5c-512mb
     region: singapore
     buildCommand: uv sync --frozen --no-dev
-    startCommand: uv run uvicorn apsrtc_alerts.api:app --host 0.0.0.0 --port $PORT
+    startCommand: uv run python -m apsrtc_alerts.service
     healthCheckPath: /health
     disk:
       name: bus-tracking-data
@@ -32,49 +32,3 @@ services:
         sync: false
       - key: TELEGRAM_EVENING_BOT_TOKEN
         sync: false
-
-  - type: worker
-    name: bus-tracking-morning-bot
-    runtime: python
-    plan: 0.5c-512mb
-    region: singapore
-    buildCommand: uv sync --frozen --no-dev
-    startCommand: uv run python -m apsrtc_alerts.bot
-    envVars:
-      - key: PYTHON_VERSION
-        value: 3.14.10
-      - key: BOT_PROFILE
-        value: morning
-      - key: ALERTS_API_URL
-        fromService:
-          type: web
-          name: bus-tracking-api
-          property: hostport
-      - key: TELEGRAM_BOT_TOKEN
-        fromService:
-          type: web
-          name: bus-tracking-api
-          envVarKey: TELEGRAM_BOT_TOKEN
-
-  - type: worker
-    name: bus-tracking-evening-bot
-    runtime: python
-    plan: 0.5c-512mb
-    region: singapore
-    buildCommand: uv sync --frozen --no-dev
-    startCommand: uv run python -m apsrtc_alerts.bot
-    envVars:
-      - key: PYTHON_VERSION
-        value: 3.14.10
-      - key: BOT_PROFILE
-        value: evening
-      - key: ALERTS_API_URL
-        fromService:
-          type: web
-          name: bus-tracking-api
-          property: hostport
-      - key: TELEGRAM_EVENING_BOT_TOKEN
-        fromService:
-          type: web
-          name: bus-tracking-api
-          envVarKey: TELEGRAM_EVENING_BOT_TOKEN
